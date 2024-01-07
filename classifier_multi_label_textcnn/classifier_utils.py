@@ -8,6 +8,7 @@ Created on Thu Jul  9 19:25:30 2020
 import os
 import csv
 import random
+import pandas as pd
 import collections
 import tensorflow_hub as hub
 import tensorflow.compat.v1 as tf
@@ -121,9 +122,12 @@ class DataProcessor(object):
         """Reads a tab separated value file."""
         df = load_csv(input_file, header=0).fillna('|')
         jobcontent = df['content'].tolist()
-        jlabel = df.loc[:, hp.label_vocabulary].values
-        lines = [[jlabel[i], jobcontent[i]] for i in range(len(jlabel)) if type(jobcontent[i]) == str]
+        print("hp.label_vocabulary:\n", hp.label_vocabulary)
+        jlabel = df.loc[:, hp.label_vocabulary].values  # 转为numpy数组
+        lines = [[jlabel[i], jobcontent[i]] for i in range(len(jlabel)) if
+                 type(jobcontent[i]) == str]  # [numpy数组，content]；这里筛选了str，可以去除
         print('Length of data:', len(lines))
+        print("lines:\n", lines[:2])
         return lines
 
 
@@ -160,7 +164,7 @@ class ClassifyProcessor(DataProcessor):
             text_a = tokenization.convert_to_unicode(line[1])
             label = tokenization.convert_to_unicode(line[0])
             # self.labels.add(label)
-            # by chenming           
+            # by chenming
             for l in label:
                 self.labels.add(l)
             examples.append(
@@ -669,6 +673,7 @@ def convert_examples_to_features(examples, label_list, max_seq_length,
     features = []
     # print('1'*20)
     print('Length of examples:', len(examples))
+    a = 1
     for (ex_index, example) in enumerate(examples):
         # print('2'*20)
         # print('ex_index:',ex_index)
@@ -680,6 +685,10 @@ def convert_examples_to_features(examples, label_list, max_seq_length,
         feature = convert_single_example(ex_index, example, label_list,
                                          max_seq_length, tokenizer, task_name)
 
+        if a == 1:
+            print("feature.input_id:", feature.input_ids)
+            print("feature.input_id.length", len(feature.input_ids))
+            a = 0
         features.append(feature)
     return features
 
@@ -699,6 +708,10 @@ data_dir = hp.data_dir
 def get_features():
     # Load train data
     train_examples = processor.get_train_examples(data_dir)
+    print("train_examples:\n", train_examples[:2])
+    print("label_list:\n", label_list)
+    print("max_seq_length: ", max_seq_length)
+    print("tokenizer: ", tokenizer)
     # Get onehot feature
     features = convert_examples_to_features(train_examples, label_list, max_seq_length, tokenizer, task_name='classify')
     input_ids = [f.input_ids for f in features]
@@ -707,6 +720,41 @@ def get_features():
     label_ids = [f.label_id for f in features]
     print('Get features finished!')
     return input_ids, input_masks, segment_ids, label_ids
+
+
+def get_features_quantum(L):
+    x1, x2, y1, y2 = 1, 1 + L ** 2, 2 + L ** 2, 2 + L ** 2 + 2 * L ** 2 + 1
+    df = pd.read_csv(os.path.join(data_dir, hp.train_data))
+    print("df: ", df.info)
+    combined_list = [[row[x1:x2].tolist(), row[y1:y2].tolist()] for index, row in df.iterrows()]
+    train_size = len(combined_list)
+    print("combined_list_len: ", len(combined_list))
+    input_ids, label_ids = zip(*combined_list)
+    # input_ids = combined_list[0]
+    input_masks = train_size * [[0] * L ** 2]  # 填充之前任务
+    segment_ids = train_size * [[0] * L ** 2]  # 填充之前任务
+    # label_ids = combined_list[1]
+    print("get_features_quantum: ")
+    print("    input_ids: ")
+    print(input_ids[:2])
+    print("    input_masks: ")
+    print(input_masks[:2])
+    print("    segment_ids: ")
+    print(segment_ids[:2])
+    print("    label_ids: ")
+    print(label_ids[:2])
+    return input_ids, input_masks, segment_ids, label_ids
+
+
+def get_train_size():
+    L = hp.L
+    x1, x2, y1, y2 = 1, 1 + L ** 2, 2 + L ** 2, 2 + L ** 2 + 2 * L ** 2
+    df = pd.read_csv(os.path.join(data_dir, hp.train_data))
+    print("df: ", df.info)
+    combined_list = [[row[x1:x2].tolist(), row[y1:y2].tolist()] for index, row in df.iterrows()]
+    train_size = len(combined_list)
+    print("train_size: ", len(combined_list))
+    return train_size
 
 
 def get_features_test():

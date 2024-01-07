@@ -6,11 +6,13 @@ Created on Thu May 30 21:42:07 2019
 """
 
 import os
+import sys
+
 # os.environ["CUDA_VISIBLE_DEVICES"] = '-1'
 import numpy as np
 import tensorflow as tf
 from classifier_multi_label_textcnn.networks import NetworkAlbertTextCNN
-from classifier_multi_label_textcnn.classifier_utils import get_features
+from classifier_multi_label_textcnn.classifier_utils import get_features, get_features_quantum, get_train_size
 from classifier_multi_label_textcnn.hyperparameters import Hyperparamters as hp
 from classifier_multi_label_textcnn.utils import select, time_now_string
 
@@ -18,10 +20,22 @@ pwd = os.path.dirname(os.path.abspath(__file__))
 MODEL = NetworkAlbertTextCNN(is_training=True)
 
 # Get data features
-input_ids, input_masks, segment_ids, label_ids = get_features()
+# train_size = get_train_size(L)
+input_ids, input_masks, segment_ids, label_ids = get_features_quantum(hp.L)
+# input_ids, input_masks, segment_ids, label_ids = get_features()
+# print("input_ids:")
+# print(input_ids[:2])
+# print("input_masks:")
+# print(input_masks[:2])
+# print("segment_ids:")
+# print(segment_ids[:2])
+# print("label_ids")
+# print(label_ids[:2])
 num_train_samples = len(input_ids)
 indexs = np.arange(num_train_samples)
 num_batchs = int((num_train_samples - 1) / hp.batch_size) + 1
+print("num_batchs: ", num_batchs)
+# sys.exit()
 
 # Set up the graph 
 saver = tf.train.Saver(max_to_keep=hp.max_to_keep)

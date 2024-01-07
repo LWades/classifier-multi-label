@@ -169,7 +169,9 @@ class AlbertModel(object):
         input_shape = get_shape_list(input_ids, expected_rank=2)
         batch_size = input_shape[0]
         seq_length = input_shape[1]
-
+        print("modelling: ")
+        print("[m]batch_size: ", batch_size)
+        print("[m]seq_length: ", seq_length)
         if input_mask is None:
             input_mask = tf.ones(shape=[batch_size, seq_length], dtype=tf.int32)
 

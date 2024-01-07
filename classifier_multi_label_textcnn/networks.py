@@ -12,7 +12,7 @@ from classifier_multi_label_textcnn import optimization
 from classifier_multi_label_textcnn.modules import cell_textcnn
 from classifier_multi_label_textcnn.utils import time_now_string
 from classifier_multi_label_textcnn.hyperparameters import Hyperparamters as hp
-from classifier_multi_label_textcnn.classifier_utils import ClassifyProcessor
+from classifier_multi_label_textcnn.classifier_utils import ClassifyProcessor, get_train_size
 
 num_labels = hp.num_labels
 processor = ClassifyProcessor()
@@ -87,9 +87,11 @@ class NetworkAlbertTextCNN(object):
                 per_example_loss = tf.nn.sigmoid_cross_entropy_with_logits(labels=self.label_ids, logits=logits)
                 self.loss = tf.reduce_mean(per_example_loss)
                 # Optimizer BERT
-                train_examples = processor.get_train_examples(hp.data_dir)
+                # train_examples = processor.get_train_examples(hp.data_dir)
+                train_size = get_train_size()       # 这里就是获得训练集的大小，用于计算训练步长
                 num_train_steps = int(
-                    len(train_examples) / hp.batch_size * hp.num_train_epochs)
+                    train_size / hp.batch_size * hp.num_train_epochs)
+                # len(train_examples) / hp.batch_size * hp.num_train_epochs)
                 num_warmup_steps = int(num_train_steps * hp.warmup_proportion)
                 print('num_train_steps', num_train_steps)
                 self.optimizer = optimization.create_optimizer(self.loss,
