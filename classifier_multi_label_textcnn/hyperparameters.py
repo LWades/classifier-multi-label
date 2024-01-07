@@ -15,6 +15,7 @@ from classifier_multi_label_textcnn.utils import load_vocabulary
 
 class Hyperparamters:
     # Train parameters
+    L = 3
     num_train_epochs = 50  # 由于训练集较少，所以模型拟合需要更多是epoch。
     print_step = 100
     batch_size = 64
@@ -23,15 +24,16 @@ class Hyperparamters:
     max_to_keep = 100
     logdir = 'logdir/model_01'
     file_save_model = 'model/model_01'
-    # file_load_model = 'model/load_01'
+    # file_load_model = 'model/load_01' # 原代码
     file_load_model = 'model/model_01'
 
     # Train/Test data
     data_dir = os.path.join(pwd, 'data')
-    train_data = 'train_onehot.csv'
+    # train_data = 'train_onehot.csv'
+    train_data = 'train_onehot_quantum.csv'
     test_data = 'test_onehot.csv'
 
-    # Load vocabulcary dict
+    # Load vocabulary dict
     dict_id2label, dict_label2id = load_vocabulary(os.path.join(pwd, 'data', 'vocabulary_label.txt'))
     label_vocabulary = list(dict_id2label.values())
 
@@ -48,8 +50,10 @@ class Hyperparamters:
     keep_prob = 0.5
 
     # Sequence and Label
-    sequence_length = 60
-    num_labels = len(list(dict_id2label))
+    sequence_length = L ** 2
+    # sequence_length = 60
+    num_labels = 2 * L ** 2
+    # num_labels = len(list(dict_id2label))
 
     # ALBERT
     model = 'albert_small_zh_google'
